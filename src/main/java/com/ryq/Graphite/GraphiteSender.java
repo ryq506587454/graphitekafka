@@ -55,7 +55,7 @@ public class GraphiteSender {
         }
 
         LocalDateTime dateTime = LocalDateTime.parse(record.value().dataDate);
-
+        //graphitekafka需要的数据个是为 name value timestamp
         PyString metricName = new PyString(record.topic() + "." + name);
         PyInteger timestamp = new PyInteger((int) dateTime.toEpochSecond(ZoneOffset.UTC));
         PyFloat metricValue = new PyFloat(Double.parseDouble(value));
