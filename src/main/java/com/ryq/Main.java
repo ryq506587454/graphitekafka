@@ -10,7 +10,6 @@ public class Main {
          // topicnames
          List<String> areasOfInterest = Arrays.asList(
                  "test2"     // 测试topic
-
          );
          Consumer consumer = new Consumer(areasOfInterest);
          Runtime.getRuntime().addShutdownHook(new Thread(() -> consumer.close()));

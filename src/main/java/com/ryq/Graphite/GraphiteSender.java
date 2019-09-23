@@ -22,16 +22,13 @@ public class GraphiteSender {
 
     public void send(ConsumerRecords<String, String> records) {
         //将kafka中的数据传递到一个list中，并将这个list发送到loalhost:2004
-        try (Socket socket = new Socket("localhost", 2004))  {
+        try (Socket socket = new Socket("114.115.236.121", 9090))  {
             PyList list = new PyList();
             records.forEach(record -> {
                 addTestRecord(record, list);
             });
-
             PyString payload = cPickle.dumps(list);
-            System.out.println(payload.toString());
-            byte[] header = ByteBuffer.allocateDirect(4).putInt(payload.__len__()).array();
-
+            byte[] header = ByteBuffer.allocate(4).putInt(payload.__len__()).array();
             OutputStream outputStream = socket.getOutputStream();
             outputStream.write(header);
             outputStream.write(payload.toBytes());
@@ -59,10 +56,10 @@ public class GraphiteSender {
         }
 
         //LocalDateTime dateTime = LocalDateTime.parse(data.dataDate);
-        LocalDateTime dateTime =LocalDateTime.ofEpochSecond(Long.parseLong(data.dataDate),0, ZoneOffset.ofHours(8));
+        //LocalDateTime dateTime =LocalDateTime.ofEpochSecond(,0, ZoneOffset.ofHours(8));
         //graphite需要的数据个是为 name value timestamp
         PyString metricName = new PyString(record.topic() + "." + data.id);
-        PyInteger timestamp = new PyInteger((int) dateTime.toEpochSecond(ZoneOffset.UTC));
+        PyInteger timestamp = new PyInteger(Integer.parseInt(data.dataDate.substring(0,10)));
         PyFloat metricValue = new PyFloat(Double.parseDouble(data.value));
         PyTuple metric = new PyTuple(metricName, new PyTuple(timestamp, metricValue));
         logMetric(metric);
