@@ -1,7 +1,6 @@
 package com.ryq.Graphite;
 
 import com.ryq.Kafka.KafkaData;
-import com.ryq.Kafka.KafkaObservationData;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.python.core.*;
@@ -30,7 +29,8 @@ public class GraphiteSender {
             });
 
             PyString payload = cPickle.dumps(list);
-            byte[] header = ByteBuffer.allocate(4).putInt(payload.__len__()).array();
+            System.out.println(payload.toString());
+            byte[] header = ByteBuffer.allocateDirect(4).putInt(payload.__len__()).array();
 
             OutputStream outputStream = socket.getOutputStream();
             outputStream.write(header);
@@ -52,15 +52,15 @@ public class GraphiteSender {
     private void addFloatMetric(ConsumerRecord<String, String> record, List list) {
         KafkaData data;
         String[] temp = record.value().split("\\s+");
-        data = new KafkaData(temp[0],temp[1],temp[2]);
-
+        data = new KafkaData(temp[0].split("\\.")[2],temp[1],temp[2]);
         if (data.value == null) {
             // Some values are optional or not giving data due to broken sensors etc
             return;
         }
 
-        LocalDateTime dateTime = LocalDateTime.parse(data.dataDate);
-        //graphitekafka需要的数据个是为 name value timestamp
+        //LocalDateTime dateTime = LocalDateTime.parse(data.dataDate);
+        LocalDateTime dateTime =LocalDateTime.ofEpochSecond(Long.parseLong(data.dataDate),0, ZoneOffset.ofHours(8));
+        //graphite需要的数据个是为 name value timestamp
         PyString metricName = new PyString(record.topic() + "." + data.id);
         PyInteger timestamp = new PyInteger((int) dateTime.toEpochSecond(ZoneOffset.UTC));
         PyFloat metricValue = new PyFloat(Double.parseDouble(data.value));

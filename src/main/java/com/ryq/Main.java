@@ -9,7 +9,7 @@ public class Main {
      public static void main(String[] args) {
          // topicnames
          List<String> areasOfInterest = Arrays.asList(
-                 "test"     // 测试topic
+                 "test2"     // 测试topic
 
          );
          Consumer consumer = new Consumer(areasOfInterest);
