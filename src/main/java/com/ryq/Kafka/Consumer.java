@@ -20,7 +20,7 @@ public class Consumer {
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private final GraphiteSender graphiteSender;
 
-    private KafkaConsumer<String, KafkaObservationData> consumer;
+    private KafkaConsumer<String,String> consumer;
 
     public Consumer(List<String> topicNames){
         this.topicNames = topicNames;
@@ -48,7 +48,7 @@ public class Consumer {
         consumer.subscribe(topicNames);
         try {
             while (true) {
-                ConsumerRecords<String, KafkaObservationData> records = consumer.poll(100);
+                ConsumerRecords<String, String> records = consumer.poll(100);
                 if (!records.isEmpty()) {
                     graphiteSender.send(records);
                 }
@@ -69,7 +69,7 @@ public class Consumer {
         Properties configProperties = new Properties();
         configProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         configProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        configProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ObservationDataDeserializer.class.getName());
+        configProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         configProperties.put(ConsumerConfig.GROUP_ID_CONFIG, "test");
         configProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return configProperties;

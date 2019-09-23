@@ -1,5 +1,6 @@
 package com.ryq.Graphite;
 
+import com.ryq.Kafka.KafkaData;
 import com.ryq.Kafka.KafkaObservationData;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -20,7 +21,7 @@ public class GraphiteSender {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public void send(ConsumerRecords<String, KafkaObservationData> records) {
+    public void send(ConsumerRecords<String, String> records) {
         //将kafka中的数据传递到一个list中，并将这个list发送到loalhost:2004
         try (Socket socket = new Socket("localhost", 2004))  {
             PyList list = new PyList();
@@ -40,25 +41,29 @@ public class GraphiteSender {
         }
     }
     //添加测试数据
-    private void addTestRecord(ConsumerRecord<String, KafkaObservationData> record, PyList list) {
-        addFloatMetric(record, list, "windSpeedMph", record.value().windSpeedMph);
+    private void addTestRecord(ConsumerRecord<String, String> record, PyList list) {
+        addFloatMetric(record, list);
     }
     //下面这个是真实场景下的数据方法 可以根据自己的实际情况添加
-    private void addWindSpeed(ConsumerRecord<String, KafkaObservationData> record, PyList list) {
-        addFloatMetric(record, list, "windSpeedMph", record.value().windSpeedMph);
+    private void addWindSpeed(ConsumerRecord<String, String> record, PyList list) {
+        addFloatMetric(record, list);
     }
 
-    private void addFloatMetric(ConsumerRecord<String, KafkaObservationData> record, List list, String name, String value) {
-        if (value == null) {
+    private void addFloatMetric(ConsumerRecord<String, String> record, List list) {
+        KafkaData data;
+        String[] temp = record.value().split("\\s+");
+        data = new KafkaData(temp[0],temp[1],temp[2]);
+
+        if (data.value == null) {
             // Some values are optional or not giving data due to broken sensors etc
             return;
         }
 
-        LocalDateTime dateTime = LocalDateTime.parse(record.value().dataDate);
+        LocalDateTime dateTime = LocalDateTime.parse(data.dataDate);
         //graphitekafka需要的数据个是为 name value timestamp
-        PyString metricName = new PyString(record.topic() + "." + name);
+        PyString metricName = new PyString(record.topic() + "." + data.id);
         PyInteger timestamp = new PyInteger((int) dateTime.toEpochSecond(ZoneOffset.UTC));
-        PyFloat metricValue = new PyFloat(Double.parseDouble(value));
+        PyFloat metricValue = new PyFloat(Double.parseDouble(data.value));
         PyTuple metric = new PyTuple(metricName, new PyTuple(timestamp, metricValue));
         logMetric(metric);
         list.add(metric);
