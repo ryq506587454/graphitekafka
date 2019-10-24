@@ -51,9 +51,6 @@ public class Consumer {
                 ConsumerRecords<String, String> records = consumer.poll(100);
                 if (!records.isEmpty()) {
                     graphiteSender.send(records);
-//                    records.forEach(record ->
-//                       System.out.println(record.value())
-//                    );
                 }
             }
         }

@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 public class GraphiteSender {
@@ -21,8 +19,8 @@ public class GraphiteSender {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public void send(ConsumerRecords<String, String> records) {
-        //将kafka中的数据传递到一个list中，并将这个list发送到loalhost:2004
-        try (Socket socket = new Socket("114.115.236.121", 9090))  {
+        //将kafka中的数据传递到一个list中，并将这个list发送到114.115.236.121:2004
+        try (Socket socket = new Socket("114.115.236.121", 2004))  {
             PyList list = new PyList();
             records.forEach(record -> {
                 addTestRecord(record, list);
@@ -55,9 +53,6 @@ public class GraphiteSender {
             return;
         }
 
-        //LocalDateTime dateTime = LocalDateTime.parse(data.dataDate);
-        //LocalDateTime dateTime =LocalDateTime.ofEpochSecond(,0, ZoneOffset.ofHours(8));
-        //graphite需要的数据个是为 name value timestamp
         PyString metricName = new PyString(record.topic() + "." + data.id);
         PyInteger timestamp = new PyInteger(Integer.parseInt(data.dataDate.substring(0,10)));
         PyFloat metricValue = new PyFloat(Double.parseDouble(data.value));
